@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Aurora - Petition Counter</title>
+
+		<style>
+			html, body{
+				font-family: Arial, sans, 'sans-serif';
+				font-size: 20px;
+				margin: 0;
+				padding: 0;
+				background: none;
+			}
+			div#container{
+				position: relative;
+				border-style: none;
+				border-radius: 5px;
+				overflow: hidden;
+			}
+			div#counter{
+				position: relative;
+			}
+			span#signups{
+				position: absolute;
+				top: 0;
+				left: 2%;
+				height: 100%;
+				width: 98%;
+				font-weight: bold;
+				background: none;
+				display: block;
+			}
+.rotate {
+    -webkit-transform-origin: 0 0;
+    -moz-transform-origin:    0 0;
+    -ms-transform-origin:     0 0;
+    -o-transform-origin:      0 0;
+
+             filter:  progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083);  /* IE6,IE7 */
+         -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083)"; /* IE8 */
+     -moz-transform: rotate(-90.0deg);  /* FF3.5+ */
+      -ms-transform: rotate(-90.0deg);  /* IE9+ */
+       -o-transform: rotate(-90.0deg);  /* Opera 10.5 */
+  -webkit-transform: rotate(-90.0deg);  /* Safari 3.1+, Chrome */
+          transform: rotate(-90.0deg);  /* Standard */
+				
+}
+		</style>
+	</head>
+	<body>
+		<div id="container">
+			<div id="counter"></div>
+			<span id="signups"></span>
+		</div>
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<script src="//aurora.grnpc.org/js/lib/jquery/jquery.number.js"></script>
+		<script>
+			$(document).ready(function(){
+			var token='ae10da26-53aa-461d-a7c6-99e60cdf12b6';
+			$(function(){
+				var params= {
+					//a: 	'56281,56277,56276,55444,55928,56407',
+					a:	null,	//campaign id
+					t: 	0,	// full scale size
+					w: 	250,
+					h: 	30,
+					c1: 'DDDDDD',
+					c2: '32CD32',
+					c3: '000000',
+					r: 	5,	// radious
+					b: 	1,	// bold text
+					m: 	0, 	// animation time in ms
+					v:      0,	// number count visible?
+					s:	20	//
+				};
+
+				window.location.search.substr(1).split('&')
+					.map(function(item){
+						item= item.split('='); 
+						params[item[0]]= item[1]; 
+						return item;
+					});
+
+				if(params.a== null || params.t== 0){return;}
+				
+				var vertical= params.h> params.w;
+				var marginProp= vertical? 'marginBottom' :'marginLeft';
+
+				var url= 'http://e-activist.com/ea-dataservice/data.service?service=EaDataCapture&token='+token+'&contentType=json&resultType=summary&campaignId='+ params.a;
+				var w;
+
+				var container= $('div#container');
+
+				container.css({
+					width: parseInt(params.w)+ 'px',
+					height: parseInt(params.h)+ 'px',
+					backgroundColor: '#'+ params.c1,
+					borderRadius: params.r+ 'px'
+				});
+
+				var signups= $('span#signups');
+
+				if(!vertical){
+					signups.css({
+						lineHeight: parseInt(params.h)+ 'px',
+						left: parseInt(.02* params.w)+ 'px',
+						width: parseInt(.98* params.w)+ 'px',
+						color: '#'+ params.c3,
+						fontSize: params.f+ 'px'
+					})
+				}else{
+					signups.css({
+						lineHeight: parseInt(params.w)+ 'px',
+						top: parseInt(.99* params.h- params.w)+ 'px',
+						height: parseInt(.99* params.h)+ 'px',
+						color: '#'+ params.c3,
+						fontSize: params.f+ 'px'
+					})
+					.addClass('rotate');
+				}
+
+				if(params.b== 0){
+					signups.css({fontWeight: 'normal'});
+				}
+
+				$.ajax({
+			        type: 		'GET',
+			        url:		url,
+			        jsonp: 		"callback",
+			        dataType: 	'jsonp',
+			        success: 	function (data, status, xhr) {
+			        		
+			        		var rtn=Object.keys(data.rows).length;
+			        		var cdf;
+			        		data.n=0;
+			        		for (i=0;i<rtn;i++){
+			        			cdf=parseInt(data.rows[i].columns[5].value);
+			        			console.log(cdf);
+							data.n+=cdf;
+			        			}
+			        		console.log(data.n);
+			            		r= Math.min(1.0, parseFloat(data.n)/ parseInt(params.t));
+
+			            		var counter= $('div#counter');
+
+						counter.css({
+							width: parseInt(params.w)+ 'px',
+							height: parseInt(params.h)+ 'px',
+							backgroundColor: '#'+ params.c2
+						});
+
+						if (!vertical){
+							counter.css({marginLeft: '-'+ params.w+ 'px'});
+							options= {marginLeft: '-'+ Math.abs(parseInt(params.w)* (r- 1)).toFixed(0)+ 'px'}
+						}else{
+							counter.css({marginTop: params.h+ 'px'});
+							options= {marginTop: Math.abs(parseInt(params.h)* (r- 1)).toFixed(0)+ 'px'}
+						}
+
+						counter.animate(options, parseInt(params.m), function(){
+							if(params.v== 1){
+								signups.html($.number(parseInt(data.n), 0));
+							}
+						});
+			        }
+			    });
+			}) 
+			});
+		</script>
+	</body>
+</html>
